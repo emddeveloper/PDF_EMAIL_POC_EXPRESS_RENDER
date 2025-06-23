@@ -1,35 +1,62 @@
-// invoiceGenerator.js
-const PDFDocument = require('pdfkit');
 const fs = require('fs');
+const puppeteer = require('puppeteer');
 const path = require('path');
 
-function generateInvoice(data, filePath) {
-    return new Promise((resolve, reject) => {
-        const doc = new PDFDocument();
-        const writeStream = fs.createWriteStream(filePath);
+async function generateInvoice(data, filePath) {
 
-        doc.pipe(writeStream);
+  // Read the HTML template
+  const templatePath = path.join(__dirname, 'template.html');
+  let html = fs.readFileSync(templatePath, 'utf8');
 
-        doc.fontSize(20).text("Invoice", { align: "center" });
-        doc.moveDown();
+  // Replace placeholders in the template with data from the request body
+  html = html.replace('{{invoiceNo}}', data.invoiceNo || '')
+             .replace('{{invoiceDate}}', data.invoiceDate || '')
+             .replace('{{buyerName}}', data.buyer?.name || '')
+             .replace('{{buyerAddress}}', data.buyer?.address || '')
+             .replace('{{buyerState}}', data.buyer?.state || '')
+             .replace('{{buyerMobile}}', data.buyer?.mobile || '')
+             .replace('{{buyerEmail}}', data.buyer?.email || '')
+             .replace('{{consigneeName}}', data.consignee?.name || '')
+             .replace('{{consigneeAddress}}', data.consignee?.address || '')
+             .replace('{{consigneeState}}', data.consignee?.state || '')
+             .replace('{{consigneeMobile}}', data.consignee?.mobile || '')
+             .replace('{{consigneeEmail}}', data.consignee?.email || '')
+             .replace('{{sgstRate}}', data.sgstRate || '')
+             .replace('{{cgstRate}}', data.cgstRate || '')
+             .replace('{{sgstAmount}}', data.sgstAmount || '')
+             .replace('{{cgstAmount}}', data.cgstAmount || '')
+             .replace('{{totalAmount}}', data.totalAmount || '')
+             .replace('{{amountWords}}', data.amountWords || '');
 
-        doc.fontSize(12).text(`Customer: ${data.customer}`);
-        doc.text(`Date: ${new Date().toLocaleDateString()}`);
-        doc.moveDown();
+  // Items table
+  if (data.items && Array.isArray(data.items)) {
+    const itemsHtml = data.items.map((item, idx) => `
+      <tr>
+        <td>${idx + 1}</td>
+        <td>${item.name}</td>
+        <td>${item.qty}</td>
+        <td>${item.unit}</td>
+        <td>${item.price}</td>
+        <td>${(item.qty * item.price).toFixed(2)}</td>
+      </tr>
+    `).join('');
+    html = html.replace('{{itemsRows}}', itemsHtml);
+  }
 
-        doc.text("Items:");
-        data.items.forEach(item => {
-            doc.text(`${item.name} - ₹${item.price}`);
-        });
+  // Serial numbers
+  if (data.serialNumbers && Array.isArray(data.serialNumbers)) {
+    const serialsHtml = data.serialNumbers.map(sn => `<li>${sn}</li>`).join('');
+    html = html.replace('{{serialNumbers}}', serialsHtml);
+  }
 
-        doc.moveDown();
-        doc.text(`Total: ₹${data.total}`, { bold: true });
+  // Launch puppeteer and generate PDF
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  await page.setContent(html, { waitUntil: 'networkidle0' });
+  await page.pdf({ path: filePath, format: 'A4', printBackground: true });
+  await browser.close();
 
-        doc.end();
-
-        writeStream.on('finish', () => resolve(filePath));
-        writeStream.on('error', reject);
-    });
+  return filePath;
 }
 
 module.exports = { generateInvoice };

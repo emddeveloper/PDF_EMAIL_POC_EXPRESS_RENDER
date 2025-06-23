@@ -19,7 +19,7 @@ app.post('/create-invoice', async (req, res) => {
         const { customer, items, email } = req.body;
 
         const total = items.reduce((acc, curr) => acc + curr.price, 0);
-        const invoiceData = { customer, items, total };
+        const invoiceData = req.body;
 
         const fileName = `invoice-${Date.now()}.pdf`;
         const filePath = path.join(__dirname, 'invoices', fileName);
