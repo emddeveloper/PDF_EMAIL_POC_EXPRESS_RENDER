@@ -1,0 +1,33 @@
+# Node modules
+node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# OS system files
+.DS_Store
+Thumbs.db
+
+# Env files
+.env
+
+# PDF output (optional - if you don't want to track generated invoices)
+invoices/
+*.pdf
+
+# VSCode workspace
+.vscode/
+
+# Optional coverage/test files
+coverage/
+.nyc_output/
