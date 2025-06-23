@@ -22,7 +22,7 @@ Thumbs.db
 .env
 
 # PDF output (optional - if you don't want to track generated invoices)
-invoices/
+
 *.pdf
 
 # VSCode workspace
