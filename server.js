@@ -9,6 +9,7 @@ const app = express();
 const PORT = 3000;
 
 app.use(express.json());
+require('dotenv').config();
 
 // Serve static PDFs
 app.use('/invoices', express.static(path.join(__dirname, 'invoices')));

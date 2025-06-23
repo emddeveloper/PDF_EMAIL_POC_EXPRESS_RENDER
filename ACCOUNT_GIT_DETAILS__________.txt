@@ -1,0 +1,13 @@
+https://github.com/emddeveloper/PDF_EMAIL_POC_EXPRESS_RENDER
+
+
+http://localhost:3000/create-invoice
+
+{
+  "customer": "Sk Aminul",
+  "email": "emd.developer@gmail.com",
+  "items": [
+    { "name": "Solar Panel", "price": 120001 },
+    { "name": "Installation", "price": 3000 }
+  ]
+}
